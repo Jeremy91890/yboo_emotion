@@ -1,4 +1,4 @@
-// Generated on 2016-11-28 using generator-angular-fullstack 4.1.0
+// Generated on 2016-11-29 using generator-angular-fullstack 4.1.0
 'use strict';
 
 import _ from 'lodash';
@@ -30,14 +30,13 @@ const paths = {
         images: `${clientPath}/assets/images/**/*`,
         revManifest: `${clientPath}/assets/rev-manifest.json`,
         scripts: [
-            `${clientPath}/**/!(*.spec|*.mock).ts`,
-            `!${clientPath}/{typings,test_typings}/**/*`
+            `${clientPath}/**/!(*.spec|*.mock).js`
         ],
         styles: [`${clientPath}/{app,components}/**/*.css`],
         mainStyle: `${clientPath}/app/app.css`,
         views: `${clientPath}/{app,components}/**/*.html`,
         mainView: `${clientPath}/index.html`,
-        test: [`${clientPath}/{app,components}/**/*.{spec,mock}.ts`],
+        test: [`${clientPath}/{app,components}/**/*.{spec,mock}.js`],
         e2e: ['e2e/**/*.spec.js']
     },
     server: {
@@ -96,12 +95,19 @@ function whenServerReady(cb) {
  ********************/
 
 let lintClientScripts = lazypipe()
-    .pipe(plugins.tslint, require(`./${clientPath}/tslint.json`))
-    .pipe(plugins.tslint.report, 'verbose', {emitError: false});
+    .pipe(plugins.eslint, `${clientPath}/.eslintrc`)
+    .pipe(plugins.eslint.format);
 
 const lintClientTestScripts = lazypipe()
-    .pipe(plugins.tslint, require(`./${clientPath}/tslint.json`))
-    .pipe(plugins.tslint.report, 'verbose', {emitError: false});
+    .pipe(plugins.eslint, {
+        configFile: `${clientPath}/.eslintrc`,
+        envs: [
+            'browser',
+            'es6',
+            'mocha'
+        ]
+    })
+    .pipe(plugins.eslint.format);
 
 let lintServerScripts = lazypipe()
     .pipe(plugins.eslint, `${serverPath}/.eslintrc`)
@@ -237,12 +243,6 @@ gulp.task('webpack:e2e', function() {
         .pipe(gulp.dest('.tmp'));
 });
 
-// Install DefinitelyTyped TypeScript definition files
-gulp.task('typings', () => {
-    return gulp.src("./typings.json")
-        .pipe(plugins.typings());
-});
-
 gulp.task('styles', () => {
     return gulp.src(paths.client.styles)
         .pipe(styles())
@@ -342,8 +342,7 @@ gulp.task('serve', cb => {
             'lint:scripts',
             'inject',
             'copy:fonts:dev',
-            'env:all',
-            'typings'
+            'env:all'
         ],
         // 'webpack:dev',
         ['start:server', 'start:client'],
@@ -359,8 +358,7 @@ gulp.task('serve:debug', cb => {
             'lint:scripts',
             'inject',
             'copy:fonts:dev',
-            'env:all',
-            'typings'
+            'env:all'
         ],
         'webpack:dev',
         'start:inspector',
@@ -471,8 +469,7 @@ gulp.task('build', cb => {
         'inject',
         'transpile:server',
         [
-            'build:images',
-            'typings'
+            'build:images'
         ],
         [
             'copy:extras',
